@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PNUR 140 Exam 2 Review — Chapter Recall Board</title>
+<style>
+  :root{
+    --chart-bg:#0f2027;
+    --chart-bg2:#16323e;
+    --grid-line:#1e4a52;
+    --paper:#eef3ee;
+    --amber:#e8a33d;
+    --teal-bright:#4fd1c5;
+    --rose:#d9737a;
+    --ink:#dce9e6;
+    --ink-dim:#8fa8a3;
+    --done:#213a34;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:linear-gradient(180deg, var(--chart-bg) 0%, var(--chart-bg2) 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    min-height:100vh;
+    padding:28px 18px 60px;
+  }
+  .grid-overlay{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(79,209,197,0.05) 0px, rgba(79,209,197,0.05) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, rgba(79,209,197,0.05) 0px, rgba(79,209,197,0.05) 1px, transparent 1px, transparent 28px);
+  }
+  .wrap{ position:relative; z-index:1; max-width:1080px; margin:0 auto; }
+  header{ text-align:left; margin-bottom:18px; border-bottom:1px solid var(--grid-line); padding-bottom:16px; }
+  .kicker{ font-family:"Courier New",monospace; letter-spacing:0.04em; color:var(--teal-bright); font-size:13px; margin:0 0 6px; }
+  h1{ font-size:clamp(26px,4vw,40px); margin:0 0 6px; font-weight:600; color:var(--paper); }
+  .sub{ color:var(--ink-dim); font-size:15px; max-width:640px; line-height:1.5; margin:0; }
+
+  .round-tabs{ display:flex; gap:8px; margin:18px 0 22px; }
+  .round-tabs button{
+    background:rgba(255,255,255,0.03); border:1px solid var(--grid-line); color:var(--ink-dim);
+    font-family:"Courier New",monospace; font-size:13px; padding:9px 18px; border-radius:3px; cursor:pointer;
+  }
+  .round-tabs button.active{ background:var(--teal-bright); color:#062026; border-color:var(--teal-bright); font-weight:700; }
+
+  .scoreboard{ display:flex; gap:14px; flex-wrap:wrap; margin:0 0 26px; }
+  .team{ background:rgba(255,255,255,0.03); border:1px solid var(--grid-line); border-radius:4px; padding:12px 16px; min-width:150px; flex:1 1 150px; }
+  .team input.name{ background:transparent; border:none; color:var(--paper); font-family:inherit; font-size:15px; font-weight:600; width:100%; padding:0 0 6px; border-bottom:1px solid transparent; }
+  .team input.name:focus{ outline:none; border-bottom:1px solid var(--teal-bright); }
+  .team .score{ font-family:"Courier New",monospace; font-size:26px; color:var(--amber); margin:2px 0 8px; }
+  .team .btns{ display:flex; gap:6px; }
+  .team button{ flex:1; background:var(--done); border:1px solid var(--grid-line); color:var(--ink); padding:5px 0; border-radius:3px; cursor:pointer; font-family:"Courier New",monospace; font-size:13px; }
+  .team button:hover{ background:var(--grid-line); }
+  .addteam{ background:none; border:1px dashed var(--grid-line); color:var(--ink-dim); border-radius:4px; padding:12px 18px; cursor:pointer; font-family:inherit; }
+
+  .board{ display:grid; gap:6px; }
+  .cat-head{
+    background:rgba(79,209,197,0.08); border:1px solid var(--grid-line); color:var(--paper);
+    font-size:13px; font-weight:600; line-height:1.3; padding:12px 8px; text-align:center;
+    min-height:64px; display:flex; align-items:center; justify-content:center;
+  }
+  .cell{
+    background:rgba(255,255,255,0.02); border:1px solid var(--grid-line); color:var(--amber);
+    font-family:"Courier New",monospace; font-size:22px; text-align:center; padding:20px 4px; cursor:pointer; transition:background 0.15s;
+  }
+  .cell:hover{ background:rgba(232,163,61,0.12); }
+  .cell.used{ background:var(--done); color:var(--ink-dim); cursor:default; }
+  .cell.used:hover{ background:var(--done); }
+
+  footer.legend{ margin-top:22px; color:var(--ink-dim); font-size:12.5px; line-height:1.6; }
+
+  .modal-bg{ position:fixed; inset:0; background:rgba(6,18,20,0.88); display:none; align-items:center; justify-content:center; z-index:10; padding:20px; }
+  .modal-bg.open{ display:flex; }
+  .modal{ background:var(--chart-bg2); border:1px solid var(--teal-bright); max-width:640px; width:100%; padding:36px 32px 28px; position:relative; }
+  .modal .tag{ font-family:"Courier New",monospace; color:var(--teal-bright); font-size:13px; margin-bottom:14px; }
+  .modal .clue{ font-size:20px; line-height:1.5; color:var(--paper); margin-bottom:22px; }
+  .modal .answer{ display:none; border-top:1px dashed var(--grid-line); padding-top:18px; margin-top:6px; color:var(--rose); font-size:17px; line-height:1.55; }
+  .modal .answer.shown{ display:block; }
+  .modal-actions{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+  .modal-actions button{ font-family:"Courier New",monospace; font-size:13px; padding:9px 16px; border-radius:3px; cursor:pointer; border:1px solid var(--grid-line); background:var(--done); color:var(--ink); }
+  .modal-actions button.primary{ background:var(--teal-bright); color:#062026; border:none; font-weight:700; }
+  .close-x{ position:absolute; top:14px; right:18px; background:none; border:none; color:var(--ink-dim); font-size:20px; cursor:pointer; font-family:monospace; }
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<div class="wrap">
+  <header>
+    <p class="kicker">PNUR 140 · Care of the Developing Family — Exam 2 Coverage (Ch 9–17)</p>
+    <h1>Chapter Recall Board</h1>
+    <p class="sub">Straight high-yield content by chapter — definitions, key numbers, core facts. Nothing here is drawn from the exam itself; it's the kind of foundational recall any exam on this material would assume you already have.</p>
+  </header>
+
+  <div class="round-tabs" id="roundTabs"></div>
+  <div class="scoreboard" id="scoreboard"></div>
+  <div class="board" id="board"></div>
+
+  <footer class="legend">Click a value to reveal the clue, then reveal the answer and award points. Squares grey out once used. Switch rounds any time — used squares are remembered per round.</footer>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <button class="close-x" id="closeX">✕</button>
+    <p class="tag" id="modalTag"></p>
+    <p class="clue" id="modalClue"></p>
+    <div class="answer" id="modalAnswer"></div>
+    <div class="modal-actions"><button class="primary" id="revealBtn">Reveal answer</button></div>
+  </div>
+</div>
+
+<script>
+const rounds = [
+  {
+    label: "Round 1 — Ch 9–13",
+    categories: [
+      { name:"Ch 9 · Labor & Childbirth", clues:[
+        {v:100, clue:"Name the 5 P's of labor.", answer:"Passenger, Passageway, Powers, Position (maternal), Psychologic response."},
+        {v:200, clue:"What are the three phases of the first stage of labor?", answer:"Latent, active, and transition."},
+        {v:300, clue:"What defines fetal 'engagement'?", answer:"When the widest diameter of the presenting part reaches the level of the ischial spines (station 0)."},
+        {v:400, clue:"List the four categories of FHR baseline variability.", answer:"Absent, minimal, moderate, and marked."},
+        {v:500, clue:"What two hormones are primarily responsible for initiating and sustaining labor contractions?", answer:"Oxytocin and prostaglandins."},
+      ]},
+      { name:"Ch 10 · Complications", clues:[
+        {v:100, clue:"What gestational age range defines preterm labor?", answer:"Regular contractions with cervical change occurring between 20 and 37 weeks' gestation."},
+        {v:200, clue:"Name three risk factors for umbilical cord prolapse.", answer:"Any three of: rupture of membranes with an unengaged presenting part, malpresentation (breech), polyhydramnios, multiple gestation, a long cord."},
+        {v:300, clue:"What are the classic signs of uterine rupture?", answer:"Sudden severe abdominal pain, change in uterine shape, loss of fetal station, FHR abnormalities, and vaginal bleeding."},
+        {v:400, clue:"Name three risk factors for shoulder dystocia.", answer:"Any three of: fetal macrosomia, maternal diabetes, prior shoulder dystocia, prolonged second stage, maternal obesity."},
+        {v:500, clue:"Describe the two-phase presentation of amniotic fluid embolism.", answer:"Phase 1: sudden respiratory distress and cardiovascular collapse. Phase 2: massive hemorrhage from DIC and uterine atony."},
+      ]},
+      { name:"Ch 11 · Birth Procedures", clues:[
+        {v:100, clue:"What does the Bishop score assess, and what does a higher score mean?", answer:"Cervical readiness for induction (dilation, effacement, station, consistency, position); a higher score means a more favorable cervix and higher likelihood of successful induction."},
+        {v:200, clue:"Name the two main risks of amniotomy.", answer:"Umbilical cord prolapse/compression and infection risk with prolonged rupture of membranes."},
+        {v:300, clue:"What three criteria define uterine hyperstimulation on tocometry?", answer:"Contractions occurring too frequently (more than every 2 minutes), lasting too long (over 90 seconds), or inadequate uterine relaxation between contractions."},
+        {v:400, clue:"Why does a classical cesarean incision rule out future TOLAC, while a low-transverse incision doesn't?", answer:"A classical (vertical) incision is in the thicker, contractile upper uterine segment and carries a much higher rupture risk in labor; a low-transverse incision is in the thinner lower segment and is far less likely to rupture."},
+        {v:500, clue:"Name two indications for an operative vaginal birth (forceps or vacuum).", answer:"Any two of: prolonged second stage, maternal exhaustion, a non-reassuring FHR pattern in second stage, or a maternal condition requiring a shortened second stage (e.g., cardiac disease)."},
+      ]},
+      { name:"Ch 12 · Postpartum Care", clues:[
+        {v:100, clue:"What does the postpartum assessment acronym 'BUBBLE-HE' stand for?", answer:"Breasts, Uterus, Bladder, Bowel, Lochia, Episiotomy/perineum, Homan's sign/extremities, Emotional status."},
+        {v:200, clue:"At what rate should the postpartum fundus descend each day?", answer:"About 1 cm (1 fingerbreadth) per day."},
+        {v:300, clue:"Name the three stages of lochia in order, with approximate timing.", answer:"Rubra (days 1–3), serosa (days 4–10), alba (day 10 through several weeks)."},
+        {v:400, clue:"How do you tell postpartum blues apart from postpartum depression by timeline alone?", answer:"Blues typically start within the first few days and resolve within about two weeks; depression persists beyond two weeks and is more severe."},
+        {v:500, clue:"What's the priority nursing action after cesarean birth to prevent respiratory complications?", answer:"Turning, coughing, and deep breathing, plus incentive spirometer use, every 2 hours."},
+      ]},
+      { name:"Ch 13 · PP Complications", clues:[
+        {v:100, clue:"Name the Four T's of postpartum hemorrhage.", answer:"Tone, Tissue, Trauma, Thrombin."},
+        {v:200, clue:"What blood loss defines PPH after a vaginal birth versus a cesarean birth?", answer:"More than 500 mL for vaginal birth; more than 1,000 mL for cesarean birth."},
+        {v:300, clue:"What's the most common cause of early (primary) postpartum hemorrhage?", answer:"Uterine atony."},
+        {v:400, clue:"What exam findings point to a vulvar or vaginal hematoma rather than uterine atony?", answer:"Severe, constant pain/pressure out of proportion to what's visible, with a firm fundus and normal lochia."},
+        {v:500, clue:"Name the two hallmark findings of endometritis.", answer:"Fever and foul-smelling lochia (often with uterine tenderness)."},
+      ]},
+    ]
+  },
+  {
+    label: "Round 2 — Ch 14–17",
+    categories: [
+      { name:"Ch 14 · Newborn Adaptation", clues:[
+        {v:100, clue:"Name the four mechanisms of newborn heat loss.", answer:"Convection, conduction, radiation, and evaporation."},
+        {v:200, clue:"What three types of stimuli trigger a newborn's first breath?", answer:"Chemical (hypoxia/hypercapnia), thermal (cold stimulus), and mechanical (chest compression during birth, tactile stimulation)."},
+        {v:300, clue:"Name the six newborn behavioral states.", answer:"Deep sleep, light sleep, drowsy, quiet alert, active alert, and crying."},
+        {v:400, clue:"Why are newborns prone to physiologic jaundice?", answer:"An immature liver has limited bilirubin-conjugating capacity, combined with a higher rate of RBC breakdown from the newborn's shorter-lived red blood cells."},
+        {v:500, clue:"How do you tell caput succedaneum apart from cephalhematoma?", answer:"Caput succedaneum is scalp edema that crosses suture lines and is present at birth; cephalhematoma is subperiosteal bleeding that does not cross suture lines and may not appear until hours after birth."},
+      ]},
+      { name:"Ch 15 · Newborn Care", clues:[
+        {v:100, clue:"What's the purpose of the erythromycin ophthalmic ointment given at birth?", answer:"To prevent ophthalmia neonatorum from gonorrhea or chlamydia exposure during birth."},
+        {v:200, clue:"Why is vitamin K given to newborns at birth?", answer:"Newborns lack sufficient vitamin K to synthesize clotting factors; the injection prevents hemorrhagic disease of the newborn."},
+        {v:300, clue:"What glucose level generally defines newborn hypoglycemia in the first 24 hours?", answer:"Roughly below 40–45 mg/dL, depending on institutional protocol."},
+        {v:400, clue:"Name three reflexes that should be present in a healthy newborn.", answer:"Any three of: Moro, rooting, sucking, palmar/plantar grasp, Babinski, stepping, tonic neck."},
+        {v:500, clue:"What's the expected amount and timeline of newborn weight loss after birth?", answer:"Up to about 7–10% of birth weight lost in the first few days, regained by roughly 2 weeks of age."},
+      ]},
+      { name:"Ch 16 · Newborn Nutrition", clues:[
+        {v:100, clue:"What is colostrum, and how does it differ from mature breast milk?", answer:"The early, thick, yellowish milk produced first — high in antibodies (especially IgA) and protein, lower in fat than mature milk."},
+        {v:200, clue:"Name three signs of adequate breastfeeding intake in the first week.", answer:"Any three of: increasing wet/dirty diaper counts day by day, audible swallowing during feeds, weight trending back toward birth weight."},
+        {v:300, clue:"What hormone triggers the let-down (milk ejection) reflex, and what stimulates its release?", answer:"Oxytocin, released in response to nipple stimulation/suckling."},
+        {v:400, clue:"Name one true contraindication to breastfeeding.", answer:"Any one of: untreated active tuberculosis, infant galactosemia, certain maternal chemotherapy/medications, an active herpes lesion on the breast."},
+        {v:500, clue:"How does formula-fed newborn stooling typically differ from breastfed stooling?", answer:"Formula-fed stools tend to be firmer, more formed, and less frequent; breastfed stools are looser, seedy, and more frequent."},
+      ]},
+      { name:"Ch 17 · Newborn at Risk", clues:[
+        {v:100, clue:"What causes respiratory distress syndrome (RDS) in preterm newborns?", answer:"Surfactant deficiency, leading to alveolar collapse between breaths."},
+        {v:200, clue:"What causes transient tachypnea of the newborn (TTN)?", answer:"Delayed clearance of fetal lung fluid — more common after cesarean birth without labor."},
+        {v:300, clue:"What's the typical onset window for neonatal abstinence syndrome symptoms after birth?", answer:"Roughly 24 to 72 hours after birth, depending on the substance involved."},
+        {v:400, clue:"Name three signs of neonatal sepsis.", answer:"Any three of: temperature instability, lethargy, poor feeding, respiratory distress, irritability, bulging fontanel."},
+        {v:500, clue:"What's the nursing priority when caring for an infant with a brachial plexus injury?", answer:"Avoid lifting the infant under the axillae; support the affected arm and avoid forcing its range of motion."},
+      ]},
+    ]
+  }
+];
+
+let currentRound = 0;
+let teams = [ {name:"Team 1", score:0}, {name:"Team 2", score:0} ];
+const usedCells = rounds.map(r => r.categories.map(c => c.clues.map(()=>false)));
+
+function renderTabs(){
+  const el = document.getElementById('roundTabs');
+  el.innerHTML = '';
+  rounds.forEach((r,i)=>{
+    const btn = document.createElement('button');
+    btn.textContent = r.label;
+    if(i===currentRound) btn.classList.add('active');
+    btn.onclick = ()=>{ currentRound = i; renderTabs(); renderBoard(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  const cats = rounds[currentRound].categories;
+  board.style.gridTemplateColumns = `repeat(${cats.length}, 1fr)`;
+  cats.forEach(cat=>{
+    const h = document.createElement('div');
+    h.className = 'cat-head';
+    h.textContent = cat.name;
+    board.appendChild(h);
+  });
+  const maxRows = Math.max(...cats.map(c=>c.clues.length));
+  for(let row=0; row<maxRows; row++){
+    cats.forEach((cat, ci)=>{
+      const clue = cat.clues[row];
+      const cell = document.createElement('div');
+      if(!clue){ board.appendChild(document.createElement('div')); return; }
+      cell.className = 'cell';
+      if(usedCells[currentRound][ci][row]){
+        cell.classList.add('used');
+        cell.textContent = '';
+      } else {
+        cell.textContent = clue.v;
+      }
+      cell.addEventListener('click', ()=> openClue(cat.name, clue, currentRound, ci, row));
+      board.appendChild(cell);
+    });
+  }
+}
+
+const modalBg = document.getElementById('modalBg');
+const modalTag = document.getElementById('modalTag');
+const modalClue = document.getElementById('modalClue');
+const modalAnswer = document.getElementById('modalAnswer');
+const revealBtn = document.getElementById('revealBtn');
+
+function openClue(catName, clue, ri, ci, row){
+  if(usedCells[ri][ci][row]) return;
+  modalTag.textContent = catName + " — " + clue.v + " pts";
+  modalClue.textContent = clue.clue;
+  modalAnswer.textContent = clue.answer;
+  modalAnswer.classList.remove('shown');
+  revealBtn.style.display = 'inline-block';
+  modalBg.classList.add('open');
+  revealBtn.onclick = ()=>{ modalAnswer.classList.add('shown'); revealBtn.style.display='none'; };
+  document.getElementById('closeX').onclick = ()=>{
+    modalBg.classList.remove('open');
+    usedCells[ri][ci][row] = true;
+    renderBoard();
+  };
+}
+modalBg.addEventListener('click', (e)=>{ if(e.target===modalBg){ modalBg.classList.remove('open'); } });
+
+function renderScoreboard(){
+  const sb = document.getElementById('scoreboard');
+  sb.innerHTML = '';
+  teams.forEach((t, i)=>{
+    const div = document.createElement('div');
+    div.className = 'team';
+    div.innerHTML = `
+      <input class="name" value="${t.name}" data-i="${i}">
+      <div class="score">${t.score}</div>
+      <div class="btns">
+        <button data-i="${i}" data-d="10">+10</button>
+        <button data-i="${i}" data-d="-10">−10</button>
+      </div>`;
+    sb.appendChild(div);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'addteam';
+  addBtn.textContent = '+ Add team';
+  addBtn.onclick = ()=>{ teams.push({name:"Team "+(teams.length+1), score:0}); renderScoreboard(); };
+  sb.appendChild(addBtn);
+
+  sb.querySelectorAll('input.name').forEach(inp=>{
+    inp.addEventListener('input', e=>{ teams[e.target.dataset.i].name = e.target.value; });
+  });
+  sb.querySelectorAll('button[data-d]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const i = e.target.dataset.i, d = parseInt(e.target.dataset.d);
+      teams[i].score += d;
+      renderScoreboard();
+    });
+  });
+}
+
+renderTabs();
+renderScoreboard();
+renderBoard();
+</script>
+</body>
+</html>
